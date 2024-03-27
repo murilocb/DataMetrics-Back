@@ -13,7 +13,7 @@ export class UploadUseCase {
     //Primeiro passo processar o arquivo
     const fileData = await this.excelService.processFile(file);
     //Segundo Gerar as metricas dos dados processados
-    const metricsData = await this.metricsService.genereteMetrics(fileData);
+    const metricsData = await this.metricsService.generateMetrics(fileData);
     // retorna as metricas
     return metricsData;
   }

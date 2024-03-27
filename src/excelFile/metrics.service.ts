@@ -1,8 +1,15 @@
+interface MetricsGenerator {
+  generateMetrics(fileData: any[]): Promise<any>;
+}
+
 import { Injectable } from '@nestjs/common';
+import { CalculatorService } from './calculator.service';
 
 @Injectable()
-export class MetricsService {
-  async genereteMetrics(fileData: any[]): Promise<any> {
+export class MetricsService implements MetricsGenerator {
+  constructor(private readonly calculatorService: CalculatorService) {}
+
+  async generateMetrics(fileData: any[]): Promise<any> {
     const statsData = {};
 
     fileData.forEach((row) => {
@@ -42,9 +49,12 @@ export class MetricsService {
     // Calculate MRR and Churn Rate for each month
     Object.keys(statsData).forEach((monthYear) => {
       const { ativa, cancelada, valor } = statsData[monthYear];
-      statsData[monthYear].MRR = ativa > 0 ? Number(valor) / ativa : 0;
+      statsData[monthYear].MRR = this.calculatorService.calculateMRR(
+        ativa,
+        valor,
+      );
       statsData[monthYear].churnRate =
-        (cancelada / (ativa + cancelada)) * 100 || 0;
+        this.calculatorService.calculateChurnRate(ativa, cancelada);
     });
 
     const formattedData = Object.keys(statsData).map((monthYear) => {
