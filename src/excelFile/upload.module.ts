@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { UploadController } from './upload.controller';
-import { XlsxUploadService } from './xlsx-upload.service';
-import { CsvUploadService } from './csv-upload.service';
+import { UploadUseCase } from './upload.usecase';
+import { MetricsService } from './metrics.service';
+import { ExcelService } from './excel.service';
 
 @Module({
   controllers: [UploadController],
-  providers: [XlsxUploadService, CsvUploadService],
+  providers: [UploadUseCase, MetricsService, ExcelService],
 })
 export class UploadModule {}

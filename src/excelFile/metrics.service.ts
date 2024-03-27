@@ -1,47 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import * as ExcelJS from 'exceljs';
-
-interface RowData {
-  quantidadeCobrancas: number;
-  cobradaACadaXDias: number;
-  dataInicio: Date;
-  status: string;
-  dataStatus: Date;
-  dataCancelamento: Date;
-  valor: number;
-  proximoCiclo: Date;
-  idAssinante: string;
-}
 
 @Injectable()
-export class XlsxUploadService {
-  async processXlsx(file: Express.Multer.File) {
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(file.path);
-
-    const worksheet = workbook.getWorksheet();
-    const data = [];
-
-    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-      if (rowNumber === 1) return;
-
-      const rowData: RowData = {
-        quantidadeCobrancas: row.getCell(1).value as number,
-        cobradaACadaXDias: row.getCell(2).value as number,
-        dataInicio: row.getCell(3).value as Date,
-        status: row.getCell(4).value as string,
-        dataStatus: row.getCell(5).value as Date,
-        dataCancelamento: row.getCell(6).value as Date,
-        valor: row.getCell(7).value as number,
-        proximoCiclo: row.getCell(8).value as Date,
-        idAssinante: row.getCell(9).value as string,
-      };
-      data.push(rowData);
-    });
-    console.log(data);
+export class MetricsService {
+  async genereteMetrics(fileData: any[]): Promise<any> {
     const statsData = {};
 
-    data.forEach((row) => {
+    fileData.forEach((row) => {
       const dataInicio = new Date(row.dataInicio);
       const monthYear = `${dataInicio.getMonth() + 1}/${dataInicio.getFullYear()}`;
 
@@ -70,15 +34,15 @@ export class XlsxUploadService {
       statsData[monthYear].cobrancaACadaXDias += row.cobradaACadaXDias;
       statsData[monthYear].qtdIDAssinante += 1;
 
-      if (row.status === 'Ativa') {
-        statsData[monthYear].MRR += row.valor;
+      if (row.status.toLowerCase() === 'ativa') {
+        statsData[monthYear].MRR += Number(row.valor);
       }
     });
 
     // Calculate MRR and Churn Rate for each month
     Object.keys(statsData).forEach((monthYear) => {
       const { ativa, cancelada, valor } = statsData[monthYear];
-      statsData[monthYear].MRR = ativa > 0 ? valor / ativa : 0;
+      statsData[monthYear].MRR = ativa > 0 ? Number(valor) / ativa : 0;
       statsData[monthYear].churnRate =
         (cancelada / (ativa + cancelada)) * 100 || 0;
     });
@@ -121,16 +85,16 @@ export class XlsxUploadService {
       }
     });
 
-    const quantidadeCancelada = data.filter(
+    const quantidadeCancelada = fileData.filter(
       (item) => item.status.toLowerCase() === 'cancelada',
     ).length;
-    const quantidadeAtiva = data.filter(
+    const quantidadeAtiva = fileData.filter(
       (item) => item.status.toLowerCase() === 'ativa',
     ).length;
-    const quantidadeTrial = data.filter(
+    const quantidadeTrial = fileData.filter(
       (item) => item.status.toLowerCase() === 'trial cancelado',
     ).length;
-    const totalRegistros = data.length;
+    const totalRegistros = fileData.length;
     const porcentagemStatus = {
       ativa: Math.round((quantidadeAtiva / totalRegistros) * 100),
       cancelada: Math.round((quantidadeCancelada / totalRegistros) * 100),
