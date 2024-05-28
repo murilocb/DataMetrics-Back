@@ -1,6 +1,6 @@
-# teste-copybase-back
+# DataMetrics-back
 
-Este é o backend do projeto de teste da aplicação Copybase. Este projeto foi desenvolvido utilizando Node.js e Nest.js.
+Este projeto foi desenvolvido utilizando Node.js e Nest.js.
 
 ## Instalar as Dependências
 
